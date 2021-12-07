@@ -32,7 +32,7 @@ def save_user_profile(sender, instance, **kwargs):
 
 class Category(models.Model):
     name= models.CharField(max_length=255)
-    description= models.CharField(max_length=1000)
+    description= models.CharField(max_length=1000, null=True)
     slug = models.SlugField()
 
     class Meta:
@@ -49,7 +49,7 @@ class Product(models.Model):
     name= models.CharField(max_length=255)
     description= models.TextField(blank=True,null=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
-    no_of_pieces = models.DecimalField(max_digits=4, decimal_places=1)
+    no_of_pieces = models.DecimalField(max_digits=4, decimal_places=1, default=1)
     slug = models.SlugField()
     thumbnail=models.ImageField(upload_to='uploads/',blank=True,null=True)
     imagemain=models.ImageField(upload_to='uploads/',blank=True,null=True)
