@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from product.models import *
+from core.models import *
 
 
 admin.site.register(Category)
