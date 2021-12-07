@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
@@ -84,13 +85,10 @@ WSGI_APPLICATION = 'eCommerce_django.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 
-DATABASES = {
+DATABASES = DATABASES = {
     'default': {
-        'ENGINE': 'djongo',
-        'NAME': 'ecommerce-app',
-        'CLIENT': {
-            'host': 'localhost:27019'
-        }  
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
