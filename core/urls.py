@@ -12,4 +12,21 @@ urlpatterns = [
     path('categories/<int:category_id>/', views.CategoryDetail.as_view()),
     path('transactions/', views.TransactionView.as_view()),
     path('transactions/<int:transaction_id>/', views.TransactionDetail.as_view()),
+    
+    # TODO Create GiftView Class
+
+    # TODO Create GiftDetail Class
+
+    # TODO Create OrderView Class
+
+    # TODO Create OrderDetail Class
+
+    # TODO Create ShareView Class
+
+    # TODO Create ShareDetail Class
+
+    # TODO API for cash Deposit
+
+    # TODO API for Profile
+
 ]

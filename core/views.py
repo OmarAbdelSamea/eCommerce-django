@@ -243,3 +243,20 @@ class TransactionDetail(APIView):
             {"response": "Transaction deleted succesfully!"},
             status=status.HTTP_200_OK
         )
+
+# TODO Create GiftView Class
+
+# TODO Create GiftDetail Class
+
+# TODO Create OrderView Class
+
+# TODO Create OrderDetail Class
+
+# TODO Create ShareView Class
+
+# TODO Create ShareDetail Class
+
+# TODO API for cash Deposit
+
+# TODO API for Profile
+
