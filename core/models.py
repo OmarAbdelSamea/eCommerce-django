@@ -95,9 +95,7 @@ class Order(models.Model):
     
     class Meta:
         ordering=('-date_added',)
-            
-    def __str__(self):
-        return self.id
+
 
 class Gift (models.Model):
     order= models.ForeignKey(Order,related_name='gift',on_delete=models.CASCADE,null=False)

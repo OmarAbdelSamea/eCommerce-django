@@ -13,18 +13,19 @@ urlpatterns = [
     path('transactions/', views.TransactionView.as_view()),
     path('transactions/<int:transaction_id>/', views.TransactionDetail.as_view()),
     
-    # TODO Create GiftView Class
-
-    # TODO Create GiftDetail Class
-
+    # DONE Create GiftView Class     # DONE Create GiftDetail Class
+    path('gifts/', views.GiftView.as_view()),
+    path('gifts/<int:gift_id>/', views.GiftDetail.as_view()),
     # DONE Create OrderView Class   # DONE Create OrderDetail Class
 
     path('orders/', views.OrderView.as_view()),
     path('orders/<int:order_id>/', views.OrderDetail.as_view()),
 
-    # TODO Create ShareView Class
+    # TODO Create ShareView Class   # TODO Create ShareDetail Class
+    path('shares/', views.ShareView.as_view()),
+    path('shares/<int:share_id>/', views.ShareDetail.as_view()),
 
-    # TODO Create ShareDetail Class
+    
 
     # TODO API for cash Deposit
 

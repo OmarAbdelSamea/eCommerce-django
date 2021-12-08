@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.http import Http404
 
 from rest_framework import status, authentication, permissions
+from rest_framework.fields import EmailField
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -247,8 +248,80 @@ class TransactionDetail(APIView):
         )
 
 # TODO Create GiftView Class
+class GiftView(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request,format=None):
+        type = request.GET.get('type')
+        gift_req=[]
+        if type == "recevied":
+            gift_req = request.user.gifts
+        elif type == "sent":
+            order_ids = (Order.objects.filter(maker= request.user.id)).values_list('id', flat=True)
+            gift_req = Gift.objects.filter(order__in= order_ids)
+        if not gift_req:
+            return Response({"Gifts": []}) ## TODO
+
+        serializer = GiftSerializer(gift_req, many=True)
+        return Response(serializer.data)
+    #shdedaaaaaaaaaaaaaaaaaaaaaaaa
+    def post(self, request, format=None):
+        data = {
+            'order':  request.data.get('order'),
+            'reciever': (User.objects.get(email= request.data.get('reciever'))).id,
+        }
+
+        serializer = GiftSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # TODO Create GiftDetail Class
+class GiftDetail(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, gift_id):
+        try:
+            return Gift.objects.get(pk=gift_id)
+        except Gift.DoesNotExist:
+            raise Http404
+    
+    def get(self, request, gift_id, format=None):
+        gift = self.get_object(gift_id)
+        serializer = GiftSerializer(gift)
+        return Response(serializer.data)
+    
+    def put(self, request, gift_id, format=None):
+        gift = self.get_object(gift_id)
+        serializer = GiftSerializer(gift)
+        data = {
+            'order': request.data.get('order'),
+            'reciever': (User.objects.get(email = request.data.get('reciever'))).id,
+        }
+        serializer = GiftSerializer(instance = gift, data = data, partial = True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, gift_id):
+        gift = self.get_object(gift_id)
+        if not gift:
+            return Response(
+                {"response": "Gift does not exists"}, 
+                status=status.HTTP_400_BAD_REQUEST   
+            )
+        gift.delete()
+        return Response(
+            {"response": "Gift deleted succesfully!"},
+            status=status.HTTP_200_OK
+        )
+
+
+
 
 # DONE Create OrderView Class
 class OrderView(APIView):
@@ -322,8 +395,63 @@ class OrderDetail(APIView):
             status=status.HTTP_200_OK
         )
 # TODO Create ShareView Class
+class ShareView(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request,format=None):
+        share = Share.objects.filter(share_holder = request.user.id)
+        serializer = ShareSerializer(share, many=True)
+        return Response(serializer.data)
+
+    #shdedaaaaaaaaaaaaaaaaaaaaaaaa
+    def post(self, request, format=None):
+        data = {
+            'product': request.data.get('product'),
+            'share_holder': request.user.id,
+        }
+
+        serializer = ShareSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # TODO Create ShareDetail Class
+class ShareDetail(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, share_id):
+        try:
+            return Share.objects.get(pk=share_id)
+        except Share.DoesNotExist:
+            raise Http404
+    
+    def get(self, request, share_id, format=None):
+        share = self.get_object(share_id)
+        if not share:
+            return Response(
+                {"response": "shared offer does not exists"}, 
+                status=status.HTTP_400_BAD_REQUEST   
+            )
+        serializer = ShareSerializer(share)
+        return Response(serializer.data)
+
+    def delete(self, request, share_id):
+        share = self.get_object(share_id)
+        if not share:
+            return Response(
+                {"response": "shared offer does not exists"}, 
+                status=status.HTTP_400_BAD_REQUEST   
+            )
+        share.delete()
+        return Response(
+            {"response": "shared offer deleted succesfully!"},
+            status=status.HTTP_200_OK
+        )
+
+
 
 # TODO API for cash Deposit
 
