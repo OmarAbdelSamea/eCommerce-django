@@ -11,7 +11,7 @@ class Profile(models.Model):
     cash = models.DecimalField(max_digits=7, decimal_places=2,default=0)
     location = models.CharField(max_length=30, blank=True)
     birth_date = models.DateField(null=True, blank=True)
-    tag = models.CharField(max_length=255,unique=True,null=False)
+    # tag = models.CharField(max_length=255,unique=True,null=False) username from User Class
     SEX_CHOICES = (
         ('F', 'Female',),
         ('M', 'Male',),
@@ -54,7 +54,8 @@ class Product(models.Model):
     thumbnail=models.ImageField(upload_to='uploads/',blank=True,null=True)
     imagemain=models.ImageField(upload_to='uploads/',blank=True,null=True)
     date_added = models.DateTimeField(auto_now_add=True)
-    
+    on_sale = models.BooleanField(default=False)
+
     class Meta:
         ordering=('-date_added',)
 
@@ -88,7 +89,7 @@ class Product(models.Model):
 class Order(models.Model):
     maker= models.ForeignKey(User,related_name='orders',on_delete=models.CASCADE,null=False)
     product = models.ForeignKey(Product,related_name='orders',on_delete=models.CASCADE,null=False)
-    sold = models.BooleanField(default=False)
+    # sold = models.BooleanField(default=False) This Attribute is handled by vue app
     amount = models.DecimalField(max_digits=3,decimal_places=0, default=1)
     date_added = models.DateTimeField(auto_now_add=True)
     

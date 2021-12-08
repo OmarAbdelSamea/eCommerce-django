@@ -35,7 +35,8 @@ class ProductView(APIView):
             'name': request.data.get('name'),
             'description': request.data.get('description'),
             'price': request.data.get('price'),
-            'no_of_pieces': request.data.get('no_of_pieces')
+            'no_of_pieces': request.data.get('no_of_pieces'),
+            'on_sale': request.data.get('on_sale')
         }
 
         serializer = ProductSerializer(data=data)
@@ -74,7 +75,8 @@ class ProductDetail(APIView):
             'name': request.data.get('name'),
             'description': request.data.get('description'),
             'price': request.data.get('price'),
-            'no_of_pieces': request.data.get('no_of_pieces')
+            'no_of_pieces': request.data.get('no_of_pieces'),
+            'on_sale': request.data.get('on_sale')
         }
         serializer = ProductSerializer(instance = product, data = data, partial = True)
         if serializer.is_valid():
@@ -266,9 +268,6 @@ class OrderView(APIView):
         data = {
             'maker': request.user.id,
             'product': request.data.get('product'),
-            # Sold should be on_sale to differ owned items from 
-            # one are being saled
-            'sold': True,
             'amount': request.data.get('amount'),
             'date_added': datetime.datetime.now()
         }
@@ -301,7 +300,6 @@ class OrderDetail(APIView):
         data = {
             'maker': request.user.id,
             'product': request.data.get('product'),
-            'sold': request.data.get('sold'),
             'amount': request.data.get('amount'),
             'date_added': request.data.get('date_added')
         }
