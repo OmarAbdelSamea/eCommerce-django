@@ -62,11 +62,11 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-    def get_imagemain (self):
+    def image_main(self):
         if self.imagemain:
             return'http://127.0.0.1:8000'+ self.imagemain.url
         return ''
-    def get_thumbnail (self):
+    def image_thumbnail(self):
         if self.thumbnail:
             return'http://127.0.0.1:8000'+ self.thumbnail.url
         else:
@@ -95,9 +95,6 @@ class Order(models.Model):
     
     class Meta:
         ordering=('-date_added',)
-            
-    def __str__(self):
-        return self.id
 
 class Gift (models.Model):
     order= models.ForeignKey(Order,related_name='gift',on_delete=models.CASCADE,null=False)

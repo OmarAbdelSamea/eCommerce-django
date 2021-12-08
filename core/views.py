@@ -36,7 +36,9 @@ class ProductView(APIView):
             'description': request.data.get('description'),
             'price': request.data.get('price'),
             'no_of_pieces': request.data.get('no_of_pieces'),
-            'on_sale': request.data.get('on_sale')
+            'on_sale': request.data.get('on_sale'),
+            'image_main': request.data.get('image_main'),
+            'image_thumbnail': request.data.get('image_thumbnail'),
         }
 
         serializer = ProductSerializer(data=data)
@@ -59,7 +61,7 @@ class ProductDetail(APIView):
                 {"response": "Product does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST   
             )
-        serializer = ProductSerializer(product, many=True)
+        serializer = ProductSerializer(product)
         return Response(serializer.data)
 
     def put(self, request, product_id):
@@ -76,7 +78,9 @@ class ProductDetail(APIView):
             'description': request.data.get('description'),
             'price': request.data.get('price'),
             'no_of_pieces': request.data.get('no_of_pieces'),
-            'on_sale': request.data.get('on_sale')
+            'on_sale': request.data.get('on_sale'),
+            'image_main': request.data.get('image_main'),
+            'image_thumbnail': request.data.get('image_thumbnail'),
         }
         serializer = ProductSerializer(instance = product, data = data, partial = True)
         if serializer.is_valid():
@@ -275,8 +279,6 @@ class OrderView(APIView):
         serializer = OrderSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            product = Product.objects.filter(pk=request.data.get('product')).update(owner=request.user.id)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # DONE Create OrderDetail Class
