@@ -10,7 +10,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from .models import Product, Category
 from .serializers import *
 from core import serializers
-
+import datetime
 
 class LatestProductsList(APIView):
     def get(self, request, format=None):
@@ -192,7 +192,7 @@ class TransactionView(APIView):
 
     def post(self, request, format=None):
         data = {
-            'sender': request.data.get('sender'),
+            'sender': request.user.id,
             'reciever': request.data.get('reciever'),
             'transaction_size': request.data.get('transaction_size'),
         }
@@ -221,7 +221,7 @@ class TransactionDetail(APIView):
         category = self.get_object(transaction_id)
         serializer = TransactionSerializer(category)
         data = {
-            'sender': request.data.get('sender'),
+            'sender': request.user.id,
             'reciever': request.data.get('reciever'),
             'transaction_size': request.data.get('transaction_size'),
         }
@@ -248,10 +248,81 @@ class TransactionDetail(APIView):
 
 # TODO Create GiftDetail Class
 
-# TODO Create OrderView Class
+# DONE Create OrderView Class
+class OrderView(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
-# TODO Create OrderDetail Class
+    def get(self, request,format=None):
+        orders = request.user.orders
 
+        if not orders:
+            return Response({"orders": []}) ## TODO
+
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, format=None):
+        data = {
+            'maker': request.user.id,
+            'product': request.data.get('product'),
+            # Sold should be on_sale to differ owned items from 
+            # one are being saled
+            'sold': True,
+            'amount': request.data.get('amount'),
+            'date_added': datetime.datetime.now()
+        }
+
+        serializer = OrderSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            product = Product.objects.filter(pk=request.data.get('product')).update(owner=request.user.id)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# DONE Create OrderDetail Class
+class OrderDetail(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    def get_object(self, order_id):
+        try:
+            return Order.objects.get(pk=order_id)
+        except Order.DoesNotExist:
+            raise Http404
+    
+    def get(self, request, order_id, format=None):
+        order = self.get_object(order_id)
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
+    
+    def put(self, request, order_id, format=None):
+        order = self.get_object(order_id)
+        serializer = OrderSerializer(order)
+        data = {
+            'maker': request.user.id,
+            'product': request.data.get('product'),
+            'sold': request.data.get('sold'),
+            'amount': request.data.get('amount'),
+            'date_added': request.data.get('date_added')
+        }
+        serializer = OrderSerializer(instance = order, data = data, partial = True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, order_id):
+        order = self.get_object(order_id)
+        if not order:
+            return Response(
+                {"response": "Order does not exists"}, 
+                status=status.HTTP_400_BAD_REQUEST   
+            )
+        order.delete()
+        return Response(
+            {"response": "Order deleted succesfully!"},
+            status=status.HTTP_200_OK
+        )
 # TODO Create ShareView Class
 
 # TODO Create ShareDetail Class
@@ -260,3 +331,4 @@ class TransactionDetail(APIView):
 
 # TODO API for Profile
 
+# TODO Import Decimal and use it for all Decimal values

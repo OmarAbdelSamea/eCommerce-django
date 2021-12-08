@@ -17,9 +17,10 @@ urlpatterns = [
 
     # TODO Create GiftDetail Class
 
-    # TODO Create OrderView Class
+    # DONE Create OrderView Class   # DONE Create OrderDetail Class
 
-    # TODO Create OrderDetail Class
+    path('orders/', views.OrderView.as_view()),
+    path('orders/<int:order_id>/', views.OrderDetail.as_view()),
 
     # TODO Create ShareView Class
 
