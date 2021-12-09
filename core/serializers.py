@@ -2,6 +2,12 @@
 from rest_framework import serializers
 
 from .models import *
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+
 class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.ReadOnlyField(source='category.name')
     owner_name = serializers.ReadOnlyField(source='owner.username')
@@ -39,15 +45,26 @@ class TransactionSerializer(serializers.ModelSerializer):
         )
 
 class OrderSerializer(serializers.ModelSerializer):
+    product = ProductSerializer('product')
+    maker_name = serializers.ReadOnlyField(source='maker.username')
     class Meta:
         model = Order
-        fields = '__all__'
+        fields = (
+            'maker',
+            'maker_name',
+            'product',
+            'location',
+            'amount',
+            'date_added'
+        )
 class ProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer('user')
     class Meta:
         model = Profile
         fields = '__all__'
         
 class ShareSerializer(serializers.ModelSerializer):
+    product = ProductSerializer('product')
     class Meta:
         model = Share
         fields = '__all__'
