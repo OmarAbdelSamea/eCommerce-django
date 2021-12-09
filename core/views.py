@@ -271,6 +271,7 @@ class GiftView(APIView):
         return Response(serializer.data)
     #shdedaaaaaaaaaaaaaaaaaaaaaaaa
     def post(self, request, format=None):
+
         data = {
             'order':  request.data.get('order'),
             'reciever': (User.objects.get(email= request.data.get('reciever'))).id,
@@ -348,7 +349,7 @@ class OrderView(APIView):
             'amount': request.data.get('amount'),
             'date_added': datetime.datetime.now()
         }
-
+        
         serializer = OrderSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -458,5 +459,60 @@ class ShareDetail(APIView):
 # TODO API for cash Deposit
 
 # TODO API for Profile
+class ProfileView(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request,format=None):
+        profile = request.user.id
+        serializer = ProfileSerializer(profile, many=True)
+        return Response(serializer.data)
+
+    
+# Done ProfileDetail
+class ProfileDetail(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, profile_id):
+        try:
+            return Profile.objects.get(pk=profile_id)
+        except Profile.DoesNotExist:
+            raise Http404
+    
+    def get(self, request, profile_id, format=None):
+        profile = self.get_object(profile_id)
+        serializer = OrderSerializer(profile)
+        return Response(serializer.data)
+    
+    def put(self, request, profile_id, format=None):
+        profile = self.get_object(profile_id)
+        serializer = ProfileSerializer(profile)
+        data = {
+            'user':request.user.id,
+            'cash': request.data.get('cash'),
+            'location': request.data.get('location'),
+            'birth_date':request.data.get('birth_date'),
+            'sex':request.data.get('sex'),
+        }
+        serializer = ProfileSerializer(instance = profile, data = data, partial = True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, profile_id):
+        profile = self.get_object(profile_id)
+        if not profile:
+            return Response(
+                {"response": "Order does not exists"}, 
+                status=status.HTTP_400_BAD_REQUEST   
+            )
+        profile.delete()
+        return Response(
+            {"response": "Order deleted succesfully!"},
+            status=status.HTTP_200_OK
+        )
+ 
 
 # TODO Import Decimal and use it for all Decimal values

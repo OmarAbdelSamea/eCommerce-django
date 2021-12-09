@@ -21,9 +21,14 @@ urlpatterns = [
     path('orders/', views.OrderView.as_view()),
     path('orders/<int:order_id>/', views.OrderDetail.as_view()),
 
-    # TODO Create ShareView Class   # TODO Create ShareDetail Class
+    # DONE Create ShareView Class   # DONE Create ShareDetail Class
     path('shares/', views.ShareView.as_view()),
     path('shares/<int:share_id>/', views.ShareDetail.as_view()),
+
+    path('profile/', views.ProfileView.as_view()),
+    path('profile/<int:profile_id>/', views.ProfileDetail.as_view()),
+
+
 
     
 
