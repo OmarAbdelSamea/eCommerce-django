@@ -11,7 +11,7 @@ class Profile(models.Model):
     cash = models.DecimalField(max_digits=7, decimal_places=2,default=0)
     location = models.CharField(max_length=30, blank=True)
     birth_date = models.DateField(null=True, blank=True)
-    phone = models.IntegerField(max_digits=11,default=0)
+    phone = models.DecimalField(max_digits=11,decimal_places=0,default=0)
     SEX_CHOICES = (
         ('F', 'Female',),
         ('M', 'Male',),
