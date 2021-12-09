@@ -91,6 +91,7 @@ class Order(models.Model):
     product = models.ForeignKey(Product,related_name='orders',on_delete=models.CASCADE,null=False)
     location= models.TextField(blank=False,null=True)
     # sold = models.BooleanField(default=False) This Attribute is handled by vue app
+    # this field is redundunt the price already is in product model
     amount = models.DecimalField(max_digits=3,decimal_places=0, default=1)
     date_added = models.DateTimeField(auto_now_add=True)
     
