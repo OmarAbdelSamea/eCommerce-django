@@ -538,11 +538,11 @@ class ProfileDetail(APIView):
         profile = self.get_object(profile_id)
         if not profile:
             return Response(
-                {"response": "Order does not exists"}, 
+                {"response": "Profile does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST   
             )
         profile.delete()
         return Response(
-            {"response": "Order deleted successfully!"},
+            {"response": "Profile deleted successfully!"},
             status=status.HTTP_200_OK
         )
