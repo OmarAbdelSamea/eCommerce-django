@@ -8,10 +8,10 @@ from django.dispatch import receiver
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    cash = models.DecimalField(max_digits=7, decimal_places=2,default=0)
+    cash = models.IntegerField(default=0)
     location = models.CharField(max_length=30, blank=True)
     birth_date = models.DateField(null=True, blank=True)
-    phone = models.DecimalField(max_digits=11,decimal_places=0,default=0)
+    phone = models.CharField(max_length=12, blank=True)
     SEX_CHOICES = (
         ('F', 'Female',),
         ('M', 'Male',),
@@ -49,7 +49,7 @@ class Product(models.Model):
     owner = models.ForeignKey(User,related_name='products',on_delete=models.CASCADE,null=True)
     name= models.CharField(max_length=255)
     description= models.TextField(blank=True,null=True)
-    price = models.DecimalField(max_digits=6, decimal_places=2)
+    price = models.IntegerField(default=0)
     no_of_pieces = models.IntegerField(default=1)
     thumbnail=models.ImageField(upload_to='uploads/',blank=True,null=True)
     imagemain=models.ImageField(upload_to='uploads/',blank=True,null=True)
@@ -99,12 +99,12 @@ class Order(models.Model):
 
 class Gift (models.Model):
     order= models.ForeignKey(Order,related_name='gift',on_delete=models.CASCADE,null=False)
-    reciever= models.ForeignKey(User,related_name='gifts',on_delete=models.CASCADE,null=False)
+    receiver= models.ForeignKey(User,related_name='gifts',on_delete=models.CASCADE,null=False)
 
 class Transaction (models.Model):
     sender = models.ForeignKey(User,related_name= 'sent_money',on_delete=models.CASCADE,null=False)
-    reciever = models.ForeignKey(User,related_name= 'recieved_money',on_delete=models.CASCADE,null=False)
-    transaction_size = models.DecimalField(max_digits=6,decimal_places=2, default=0)
+    receiver = models.ForeignKey(User,related_name= 'received_money',on_delete=models.CASCADE,null=False)
+    transaction_size = models.IntegerField(default=0)
     
 class Share(models.Model):
     product=models.ForeignKey(Product,related_name='shared_by',on_delete=models.CASCADE,null=False)
