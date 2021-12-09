@@ -98,7 +98,7 @@ class ProductDetail(APIView):
             )
         product.delete()
         return Response(
-            {"response": "Product deleted succesfully!"},
+            {"response": "Product deleted successfully!"},
             status=status.HTTP_200_OK
         )
         
@@ -159,7 +159,7 @@ class CategoryDetail(APIView):
             )
         category.delete()
         return Response(
-            {"response": "Category deleted succesfully!"},
+            {"response": "Category deleted successfully!"},
             status=status.HTTP_200_OK
         )
 
@@ -181,8 +181,8 @@ class TransactionView(APIView):
 
     def get(self, request,format=None):
         type = request.GET.get('type')
-        if type == "recevied":
-            transaction = request.user.recieved_money
+        if type == "received":
+            transaction = request.user.received_money
         elif type == "sent":
             transaction = request.user.sent_money
         else:
@@ -200,7 +200,7 @@ class TransactionView(APIView):
     def post(self, request, format=None):
         data = {
             'sender': request.user.id,
-            'reciever': request.data.get('reciever'),
+            'receiver': request.data.get('receiver'),
             'transaction_size': request.data.get('transaction_size'),
         }
 
@@ -229,7 +229,7 @@ class TransactionDetail(APIView):
         serializer = TransactionSerializer(category)
         data = {
             'sender': request.user.id,
-            'reciever': request.data.get('reciever'),
+            'receiver': request.data.get('receiver'),
             'transaction_size': request.data.get('transaction_size'),
         }
         serializer = TransactionSerializer(instance = category, data = data, partial = True)
@@ -247,7 +247,7 @@ class TransactionDetail(APIView):
             )
         category.delete()
         return Response(
-            {"response": "Transaction deleted succesfully!"},
+            {"response": "Transaction deleted successfully!"},
             status=status.HTTP_200_OK
         )
 
@@ -259,7 +259,7 @@ class GiftView(APIView):
     def get(self, request,format=None):
         type = request.GET.get('type')
         gift_req=[]
-        if type == "recevied":
+        if type == "received":
             gift_req = request.user.gifts
         elif type == "sent":
             order_ids = (Order.objects.filter(maker= request.user.id)).values_list('id', flat=True)
@@ -269,12 +269,11 @@ class GiftView(APIView):
 
         serializer = GiftSerializer(gift_req, many=True)
         return Response(serializer.data)
-    #shdedaaaaaaaaaaaaaaaaaaaaaaaa
     def post(self, request, format=None):
 
         data = {
             'order':  request.data.get('order'),
-            'reciever': (User.objects.get(email= request.data.get('reciever'))).id,
+            'receiver': (User.objects.get(email= request.data.get('reciever'))).id,
         }
 
         serializer = GiftSerializer(data=data)
@@ -304,7 +303,7 @@ class GiftDetail(APIView):
         serializer = GiftSerializer(gift)
         data = {
             'order': request.data.get('order'),
-            'reciever': (User.objects.get(email = request.data.get('reciever'))).id,
+            'receiver': (User.objects.get(email = request.data.get('reciever'))).id,
         }
         serializer = GiftSerializer(instance = gift, data = data, partial = True)
         if serializer.is_valid():
@@ -321,7 +320,7 @@ class GiftDetail(APIView):
             )
         gift.delete()
         return Response(
-            {"response": "Gift deleted succesfully!"},
+            {"response": "Gift deleted successfully!"},
             status=status.HTTP_200_OK
         )
 
@@ -357,7 +356,7 @@ class OrderView(APIView):
             product = Product.objects.get(pk=request.data.get('product'))
             if product.no_of_pieces < int(request.data.get('amount')):
                 return Response(
-                    {"response": "The amount is larger than availble number of pieces"}, 
+                    {"response": "The amount is larger than available number of pieces"}, 
                     status=status.HTTP_400_BAD_REQUEST   
                 )
             new_no_of_pieces = product.no_of_pieces - int(request.data.get('amount'))
@@ -405,7 +404,7 @@ class OrderDetail(APIView):
             )
         order.delete()
         return Response(
-            {"response": "Order deleted succesfully!"},
+            {"response": "Order deleted successfully!"},
             status=status.HTTP_200_OK
         )
 # TODO Create ShareView Class
@@ -418,7 +417,6 @@ class ShareView(APIView):
         serializer = ShareSerializer(share, many=True)
         return Response(serializer.data)
 
-    #shdedaaaaaaaaaaaaaaaaaaaaaaaa
     def post(self, request, format=None):
         data = {
             'product': request.data.get('product'),
@@ -461,23 +459,47 @@ class ShareDetail(APIView):
             )
         share.delete()
         return Response(
-            {"response": "shared offer deleted succesfully!"},
+            {"response": "shared offer deleted successfully!"},
             status=status.HTTP_200_OK
         )
 
 
-
-# TODO API for cash Deposit
-
-# TODO API for Profile
+# DONE API for Profile
 class ProfileView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request,format=None):
-        profile = request.user.id
-        serializer = ProfileSerializer(profile, many=True)
+        profile = Profile.objects.get(pk=request.user.id)
+        serializer = ProfileSerializer(profile)
         return Response(serializer.data)
+
+# DONE API for cash Deposit
+@api_view(['POST'])
+@authentication_classes([authentication.TokenAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def deposit(request):
+    value = request.data.get('value', '')
+
+    if value:
+        profile = Profile.objects.get(user = request.user.id)
+        data = {
+            'user': request.user.id,
+            'cash': profile.cash + int(value),
+            'location': profile.location,
+            'birth_date': profile.birth_date,
+            'sex': profile.sex,
+        }
+        serializer = ProfileSerializer(instance = profile, data = data, partial = True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response(
+            {"response": "Please try again later"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     
 # Done ProfileDetail
@@ -493,17 +515,17 @@ class ProfileDetail(APIView):
     
     def get(self, request, profile_id, format=None):
         profile = self.get_object(profile_id)
-        serializer = OrderSerializer(profile)
+        serializer = ProfileSerializer(profile)
         return Response(serializer.data)
     
     def put(self, request, profile_id, format=None):
         profile = self.get_object(profile_id)
-        serializer = ProfileSerializer(profile)
         data = {
             'user':request.user.id,
             'cash': request.data.get('cash'),
             'location': request.data.get('location'),
             'birth_date':request.data.get('birth_date'),
+            'phone': request.data.get('phone'),
             'sex':request.data.get('sex'),
         }
         serializer = ProfileSerializer(instance = profile, data = data, partial = True)
@@ -521,9 +543,6 @@ class ProfileDetail(APIView):
             )
         profile.delete()
         return Response(
-            {"response": "Order deleted succesfully!"},
+            {"response": "Order deleted successfully!"},
             status=status.HTTP_200_OK
         )
- 
-
-# TODO Import Decimal and use it for all Decimal values
