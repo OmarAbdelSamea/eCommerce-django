@@ -44,8 +44,22 @@ class TransactionSerializer(serializers.ModelSerializer):
             'amount'
         )
 
-class OrderSerializer(serializers.ModelSerializer):
+class OrderSerializerNested(serializers.ModelSerializer):
     product = ProductSerializer('product')
+    maker_name = serializers.ReadOnlyField(source='maker.username')
+    class Meta:
+        model = Order
+        fields = (
+            'id',
+            'maker',
+            'maker_name',
+            'product',
+            'location',
+            'amount',
+            'date_added'
+        )
+
+class OrderSerializerFlat(serializers.ModelSerializer):
     maker_name = serializers.ReadOnlyField(source='maker.username')
     class Meta:
         model = Order
@@ -57,14 +71,24 @@ class OrderSerializer(serializers.ModelSerializer):
             'amount',
             'date_added'
         )
-class ProfileSerializer(serializers.ModelSerializer):
+class ProfileSerializerNested(serializers.ModelSerializer):
     user = UserSerializer('user')
     class Meta:
         model = Profile
         fields = '__all__'
-        
-class ShareSerializer(serializers.ModelSerializer):
+      
+class ProfileSerializerFlat(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = '__all__' 
+
+class ShareSerializerNested(serializers.ModelSerializer):
     product = ProductSerializer('product')
+    class Meta:
+        model = Share
+        fields = '__all__'
+
+class ShareSerializerFlat(serializers.ModelSerializer):
     class Meta:
         model = Share
         fields = '__all__'

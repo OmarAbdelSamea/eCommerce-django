@@ -226,10 +226,10 @@ class TransactionDetail(APIView):
     
     def put(self, request, transaction_id, format=None):
         category = self.get_object(transaction_id)
-        serializer = TransactionSerializer(category)
+        receiver = User.objects.get(email=request.data.get('receiver'))
         data = {
             'sender': request.user.id,
-            'receiver': request.data.get('receiver'),
+            'receiver': receiver.id,
             'transaction_size': request.data.get('transaction_size'),
         }
         serializer = TransactionSerializer(instance = category, data = data, partial = True)
@@ -273,7 +273,7 @@ class GiftView(APIView):
 
         data = {
             'order':  request.data.get('order'),
-            'receiver': (User.objects.get(email= request.data.get('reciever'))).id,
+            'receiver': (User.objects.get(email= request.data.get('receiver'))).id,
         }
 
         serializer = GiftSerializer(data=data)
@@ -303,7 +303,7 @@ class GiftDetail(APIView):
         serializer = GiftSerializer(gift)
         data = {
             'order': request.data.get('order'),
-            'receiver': (User.objects.get(email = request.data.get('reciever'))).id,
+            'receiver': (User.objects.get(email = request.data.get('receiver'))).id,
         }
         serializer = GiftSerializer(instance = gift, data = data, partial = True)
         if serializer.is_valid():
@@ -338,7 +338,7 @@ class OrderView(APIView):
         if not orders:
             return Response({"orders": []}) ## TODO
 
-        serializer = OrderSerializer(orders, many=True)
+        serializer = OrderSerializerNested(orders, many=True)
         return Response(serializer.data)
 
     def post(self, request, format=None):
@@ -350,7 +350,7 @@ class OrderView(APIView):
             'date_added': datetime.datetime.now()
         }
         
-        serializer = OrderSerializer(data=data)
+        serializer = OrderSerializerFlat(data=data)
         if serializer.is_valid():
             serializer.save()
             product = Product.objects.get(pk=request.data.get('product'))
@@ -376,12 +376,12 @@ class OrderDetail(APIView):
     
     def get(self, request, order_id, format=None):
         order = self.get_object(order_id)
-        serializer = OrderSerializer(order)
+        serializer = OrderSerializerNested(order)
         return Response(serializer.data)
     
     def put(self, request, order_id, format=None):
         order = self.get_object(order_id)
-        serializer = OrderSerializer(order)
+        serializer = OrderSerializerFlat(order)
         data = {
             'maker': request.user.id,
             'product': request.data.get('product'),
@@ -389,7 +389,7 @@ class OrderDetail(APIView):
             'amount': request.data.get('amount'),
             'date_added': request.data.get('date_added')
         }
-        serializer = OrderSerializer(instance = order, data = data, partial = True)
+        serializer = OrderSerializerFlat(instance = order, data = data, partial = True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -414,7 +414,7 @@ class ShareView(APIView):
 
     def get(self, request,format=None):
         share = Share.objects.filter(share_holder = request.user.id)
-        serializer = ShareSerializer(share, many=True)
+        serializer = ShareSerializerNested(share, many=True)
         return Response(serializer.data)
 
     def post(self, request, format=None):
@@ -423,7 +423,7 @@ class ShareView(APIView):
             'share_holder': request.user.id,
         }
 
-        serializer = ShareSerializer(data=data)
+        serializer = ShareSerializerFlat(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -444,22 +444,22 @@ class ShareDetail(APIView):
         share = self.get_object(share_id)
         if not share:
             return Response(
-                {"response": "shared offer does not exists"}, 
+                {"response": "Shared offer does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST   
             )
-        serializer = ShareSerializer(share)
+        serializer = ShareSerializerNested(share)
         return Response(serializer.data)
 
     def delete(self, request, share_id):
         share = self.get_object(share_id)
         if not share:
             return Response(
-                {"response": "shared offer does not exists"}, 
+                {"response": "Shared offer does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST   
             )
         share.delete()
         return Response(
-            {"response": "shared offer deleted successfully!"},
+            {"response": "Shared offer deleted successfully!"},
             status=status.HTTP_200_OK
         )
 
@@ -471,7 +471,7 @@ class ProfileView(APIView):
 
     def get(self, request,format=None):
         profile = Profile.objects.get(pk=request.user.id)
-        serializer = ProfileSerializer(profile)
+        serializer = ProfileSerializerNested(profile)
         return Response(serializer.data)
 
 # DONE API for cash Deposit
@@ -490,7 +490,7 @@ def deposit(request):
             'birth_date': profile.birth_date,
             'sex': profile.sex,
         }
-        serializer = ProfileSerializer(instance = profile, data = data, partial = True)
+        serializer = ProfileSerializerFlat(instance = profile, data = data, partial = True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -515,7 +515,7 @@ class ProfileDetail(APIView):
     
     def get(self, request, profile_id, format=None):
         profile = self.get_object(profile_id)
-        serializer = ProfileSerializer(profile)
+        serializer = ProfileSerializerNested(profile)
         return Response(serializer.data)
     
     def put(self, request, profile_id, format=None):
@@ -528,7 +528,7 @@ class ProfileDetail(APIView):
             'phone': request.data.get('phone'),
             'sex':request.data.get('sex'),
         }
-        serializer = ProfileSerializer(instance = profile, data = data, partial = True)
+        serializer = ProfileSerializerFlat(instance = profile, data = data, partial = True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
