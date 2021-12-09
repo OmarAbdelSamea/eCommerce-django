@@ -346,6 +346,7 @@ class OrderView(APIView):
         data = {
             'maker': request.user.id,
             'product': request.data.get('product'),
+            'location': request.data.get('location'),
             'amount': request.data.get('amount'),
             'date_added': datetime.datetime.now()
         }
@@ -353,6 +354,15 @@ class OrderView(APIView):
         serializer = OrderSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
+            product = Product.objects.get(pk=request.data.get('product'))
+            if product.no_of_pieces < int(request.data.get('amount')):
+                return Response(
+                    {"response": "The amount is larger than availble number of pieces"}, 
+                    status=status.HTTP_400_BAD_REQUEST   
+                )
+            new_no_of_pieces = product.no_of_pieces - int(request.data.get('amount'))
+            product = Product.objects.filter(pk=request.data.get('product')).update(no_of_pieces = new_no_of_pieces)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # DONE Create OrderDetail Class
@@ -376,6 +386,7 @@ class OrderDetail(APIView):
         data = {
             'maker': request.user.id,
             'product': request.data.get('product'),
+            'location': request.data.get('location'),
             'amount': request.data.get('amount'),
             'date_added': request.data.get('date_added')
         }
