@@ -50,7 +50,7 @@ class Product(models.Model):
     name= models.CharField(max_length=255)
     description= models.TextField(blank=True,null=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
-    no_of_pieces = models.IntegerField(max_digits=4, default=1)
+    no_of_pieces = models.IntegerField(default=1)
     thumbnail=models.ImageField(upload_to='uploads/',blank=True,null=True)
     imagemain=models.ImageField(upload_to='uploads/',blank=True,null=True)
     date_added = models.DateTimeField(auto_now_add=True)
