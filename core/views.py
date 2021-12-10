@@ -213,7 +213,6 @@ class TransactionView(APIView):
 
         serializer = TransactionSerializer(data=data)
         if serializer.is_valid():
-            serializer.save()
             transaction_size = int(request.data.get('transaction_size'))
             if transaction_size > request.user.profile.cash:
                 return Response(
@@ -223,6 +222,7 @@ class TransactionView(APIView):
             request.user.save()
             receiver.profile.cash = receiver.profile.cash + transaction_size
             receiver.save()
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -399,7 +399,6 @@ class OrderView(APIView):
         
         serializer = OrderSerializerFlat(data=data)
         if serializer.is_valid():
-            serializer.save()
             product = Product.objects.get(pk=request.data.get('product'))
             if product.no_of_pieces < int(request.data.get('amount')):
                 return Response(
@@ -419,6 +418,7 @@ class OrderView(APIView):
             product.no_of_pieces = product.no_of_pieces + new_no_of_pieces
             product.owner.cash = product.owner.cash + cash_amount
             product.owner.save()
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
