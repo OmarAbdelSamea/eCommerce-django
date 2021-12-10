@@ -26,8 +26,10 @@ class ProductSerializer(serializers.ModelSerializer):
             'image_main',
             'image_thumbnail',
             'date_added',
-            'on_sale'
+            'on_sale',
+            'shared_by',
         )
+        read_only_fields = ('shared_by',)
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
