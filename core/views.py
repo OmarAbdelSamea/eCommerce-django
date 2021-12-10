@@ -552,6 +552,31 @@ class ShareDetail(APIView):
             status=status.HTTP_200_OK
         )
 
+# DONE API for cash Deposit
+@api_view(['POST'])
+@authentication_classes([authentication.TokenAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def checkShared(request):
+    product = request.data.get('product', '')
+
+    if product:
+        try:
+            Share.objects.get(product=product, share_holder=request.user.id)
+            return Response(
+                        {"shared": True},
+                        status=status.HTTP_200_OK
+                        )
+        except Order.DoesNotExist:
+            return Response(
+                        {"shared": False},
+                        status=status.HTTP_200_OK
+                        )
+    else:
+        return Response(
+            {"response": "Please send a correct product ID"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
 # DONE API for Profile
 class ProfileView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
