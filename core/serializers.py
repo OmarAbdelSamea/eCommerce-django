@@ -96,7 +96,7 @@ class ShareSerializerNested(serializers.ModelSerializer):
     class Meta:
         model = Share
         fields = (
-            'id'
+            'id',
             'product',
             'share_holder',
             'share_holder_name'
