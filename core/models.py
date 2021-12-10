@@ -16,10 +16,7 @@ class Profile(models.Model):
         ('F', 'Female',),
         ('M', 'Male',),
         )
-    sex = models.CharField(
-        max_length=1,
-        choices=SEX_CHOICES,
-    )
+    sex = models.CharField(max_length=1, choices=SEX_CHOICES,blank=True)
 
 
     def __str__(self):
