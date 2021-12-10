@@ -396,6 +396,8 @@ class OrderView(APIView):
                     status=status.HTTP_400_BAD_REQUEST   
                 )
             new_no_of_pieces = product.no_of_pieces - int(request.data.get('amount'))
+            request.user.profile.cash = request.user.profile.cash - int(product.price)
+            request.user.save()
             product = Product.objects.filter(pk=request.data.get('product')).update(no_of_pieces = new_no_of_pieces)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -458,7 +460,7 @@ def getSoldProducts(request):
     serializer = OrderSerializerNested(orders, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-# TODO Create ShareView Class
+# DONE Create ShareView Class
 class ShareView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -480,7 +482,7 @@ class ShareView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# TODO Create ShareDetail Class
+# DONE Create ShareDetail Class
 class ShareDetail(APIView):
     authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
