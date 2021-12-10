@@ -19,7 +19,7 @@ class LatestProductsList(APIView):
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
 
-
+# TODO Signed in user browsable products
 class ProductView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -110,6 +110,7 @@ class LatestCategoriesList(APIView):
         serializer = CategorySerializer(products, many=True)
         return Response(serializer.data)
 
+# TODO Signed in user browsable categories
 class CategoryView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -327,8 +328,6 @@ class GiftDetail(APIView):
         )
 
 
-
-
 # DONE Create OrderView Class
 class OrderView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
@@ -409,6 +408,20 @@ class OrderDetail(APIView):
             {"response": "Order deleted successfully!"},
             status=status.HTTP_200_OK
         )
+
+@api_view(['GET'])
+@authentication_classes([authentication.TokenAuthentication])
+@permission_classes([permissions.IsAuthenticated])
+def getSoldProducts(request):
+    orders = Order.objects.filter(product__owner = request.user.id)
+    if not orders:
+        return Response(
+            {"response": "Orders not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    serializer = OrderSerializerNested(orders, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 # TODO Create ShareView Class
 class ShareView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
