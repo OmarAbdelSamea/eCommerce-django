@@ -184,7 +184,6 @@ def search(request):
     else:
         return Response({"products": []})
 
-
 class TransactionView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -208,15 +207,26 @@ class TransactionView(APIView):
         return Response(serializer.data)
 
     def post(self, request, format=None):
+        receiver = User.objects.get(email= request.data.get('receiver'))
+
         data = {
             'sender': request.user.id,
-            'receiver': request.data.get('receiver'),
+            'receiver': receiver.id,
             'transaction_size': request.data.get('transaction_size'),
-        }
+        }            
 
         serializer = TransactionSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
+            transaction_size = int(request.data.get('transaction_size'))
+            if transaction_size > request.user.profile.cash:
+                return Response(
+                    {"response": "The amount is larger than available cash"}
+                    , status=status.HTTP_400_BAD_REQUEST)
+            request.user.profile.cash = request.user.profile.cash - transaction_size
+            request.user.save()
+            receiver.profile.cash = receiver.profile.cash + transaction_size
+            receiver.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -261,7 +271,7 @@ class TransactionDetail(APIView):
             status=status.HTTP_200_OK
         )
 
-# TODO Create GiftView Class
+# DONE Create GiftView Class
 class GiftView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -277,22 +287,42 @@ class GiftView(APIView):
         if not gift_req:
             return Response({"Gifts": []}) ## TODO
 
-        serializer = GiftSerializer(gift_req, many=True)
+        serializer = GiftSerializerNested(gift_req, many=True)
         return Response(serializer.data)
     def post(self, request, format=None):
 
+        receiver = User.objects.get(email= request.data.get('receiver'))
+        order_data = {
+            'maker': request.user.id,
+            'product': request.data.get('product'),
+            'location': receiver.profile.location,
+            'amount': request.data.get('amount'),
+            'date_added': datetime.datetime.now()
+        }
+        order_serializer = OrderSerializerFlat(data=order_data)
+        if order_serializer.is_valid():
+            order = order_serializer.save()
+            product = Product.objects.get(pk=request.data.get('product'))
+            if product.no_of_pieces < int(request.data.get('amount')):
+                return Response(
+                    {"response": "The amount is larger than available number of pieces"}, 
+                    status=status.HTTP_400_BAD_REQUEST   
+                )
+            new_no_of_pieces = product.no_of_pieces - int(request.data.get('amount'))
+            product = Product.objects.filter(pk=request.data.get('product')).update(no_of_pieces = new_no_of_pieces)
+
         data = {
-            'order':  request.data.get('order'),
-            'receiver': (User.objects.get(email= request.data.get('receiver'))).id,
+            'order':  order.id,
+            'receiver': receiver.id,
         }
 
-        serializer = GiftSerializer(data=data)
+        serializer = GiftSerializerFlat(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# TODO Create GiftDetail Class
+# DONE Create GiftDetail Class
 class GiftDetail(APIView):
     authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -305,17 +335,16 @@ class GiftDetail(APIView):
     
     def get(self, request, gift_id, format=None):
         gift = self.get_object(gift_id)
-        serializer = GiftSerializer(gift)
+        serializer = GiftSerializerNested(gift)
         return Response(serializer.data)
     
     def put(self, request, gift_id, format=None):
         gift = self.get_object(gift_id)
-        serializer = GiftSerializer(gift)
         data = {
             'order': request.data.get('order'),
             'receiver': (User.objects.get(email = request.data.get('receiver'))).id,
         }
-        serializer = GiftSerializer(instance = gift, data = data, partial = True)
+        serializer = GiftSerializerFlat(instance = gift, data = data, partial = True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -333,7 +362,6 @@ class GiftDetail(APIView):
             {"response": "Gift deleted successfully!"},
             status=status.HTTP_200_OK
         )
-
 
 # DONE Create OrderView Class
 class OrderView(APIView):
@@ -486,7 +514,6 @@ class ShareDetail(APIView):
             status=status.HTTP_200_OK
         )
 
-
 # DONE API for Profile
 class ProfileView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
@@ -524,7 +551,6 @@ def deposit(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    
 # Done ProfileDetail
 class ProfileDetail(APIView):
     authentication_classes = [authentication.TokenAuthentication]

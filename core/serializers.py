@@ -35,13 +35,18 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class TransactionSerializer(serializers.ModelSerializer):
-    maker_name = serializers.ReadOnlyField(source='maker.username')
+    sender_name = serializers.ReadOnlyField(source='sender.username')
+    receiver_name = serializers.ReadOnlyField(source='receiver.username')
+
     class Meta:
         model = Transaction
         fields = (
-            'maker_name',
-            'product',
-            'amount'
+            'id',
+            'sender',
+            'sender_name',
+            'receiver',
+            'receiver_name',
+            'transaction_size',
         )
 
 class OrderSerializerNested(serializers.ModelSerializer):
@@ -64,6 +69,7 @@ class OrderSerializerFlat(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = (
+            'id',
             'maker',
             'maker_name',
             'product',
@@ -92,7 +98,16 @@ class ShareSerializerFlat(serializers.ModelSerializer):
     class Meta:
         model = Share
         fields = '__all__'
-class GiftSerializer(serializers.ModelSerializer):
+
+class GiftSerializerNested(serializers.ModelSerializer):
+    order = OrderSerializerFlat('order')
+    receiver = UserSerializer('receiver')
+
+    class Meta:
+        model = Gift
+        fields = '__all__'
+
+class GiftSerializerFlat(serializers.ModelSerializer):
     class Meta:
         model = Gift
         fields = '__all__'
