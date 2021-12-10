@@ -476,6 +476,7 @@ def getSoldProducts(request):
     serializer = OrderSerializerNested(orders, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 # DONE Create ShareView Class
 class ShareView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
@@ -502,6 +503,20 @@ class ShareView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# DONE Create ShareList Class
+class ShareList(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    def get(self, request, format=None):
+        share = Share.objects.exclude(share_holder = request.user.id)
+        if not share:
+            return Response(
+                {"response": "Share not found"}, 
+                status=status.HTTP_404_NOT_FOUND  
+            )
+        serializer = ShareSerializerNested(share, many=True)
+        return Response(serializer.data)
 
 # DONE Create ShareDetail Class
 class ShareDetail(APIView):

@@ -28,6 +28,7 @@ urlpatterns = [
 
     # DONE Create ShareView Class   # DONE Create ShareDetail Class
     path('shares/', views.ShareView.as_view()),
+    path('shares/shop/', views.ShareList.as_view()),
     path('shares/<int:share_id>/', views.ShareDetail.as_view()),
 
     # DONE API for Profile
