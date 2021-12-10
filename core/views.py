@@ -13,13 +13,21 @@ from .serializers import *
 from core import serializers
 import datetime
 
-class LatestProductsList(APIView):
+class ProductsListGuest(APIView):
     def get(self, request, format=None):
-        products = Product.objects.all()[0:4]
+        products = Product.objects.all()
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
 
-# TODO Signed in user browsable products
+# DONE Signed in user browsable products
+class ProductsList(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    def get(self, request, format=None):
+        products = Product.objects.exclude(owner = request.user.id)
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
+
 class ProductView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -104,13 +112,12 @@ class ProductDetail(APIView):
             status=status.HTTP_200_OK
         )
         
-class LatestCategoriesList(APIView):
+class CategoriesListGuest(APIView):
     def get(self, request, format=None):
-        products = Category.objects.all()[0:4]
+        products = Category.objects.all()
         serializer = CategorySerializer(products, many=True)
         return Response(serializer.data)
 
-# TODO Signed in user browsable categories
 class CategoryView(APIView):
     authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -409,6 +416,7 @@ class OrderDetail(APIView):
             status=status.HTTP_200_OK
         )
 
+# Done Get Sold Products
 @api_view(['GET'])
 @authentication_classes([authentication.TokenAuthentication])
 @permission_classes([permissions.IsAuthenticated])
