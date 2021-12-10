@@ -101,11 +101,6 @@ class ProductDetail(APIView):
 
     def delete(self, request, product_id):
         product = self.get_object(product_id)
-        if not product:
-            return Response(
-                {"response": "Product does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST   
-            )
         product.delete()
         return Response(
             {"response": "Product deleted successfully!"},
@@ -162,11 +157,6 @@ class CategoryDetail(APIView):
 
     def delete(self, request, category_id):
         category = self.get_object(category_id)
-        if not category:
-            return Response(
-                {"response": "Category does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST   
-            )
         category.delete()
         return Response(
             {"response": "Category deleted successfully!"},
@@ -208,6 +198,12 @@ class TransactionView(APIView):
 
     def post(self, request, format=None):
         receiver = User.objects.get(email= request.data.get('receiver'))
+
+        if not receiver:
+            return Response(
+                {"response": "User not found"}, 
+                status=status.HTTP_404_NOT_FOUND  
+            )
 
         data = {
             'sender': request.user.id,
@@ -283,44 +279,59 @@ class GiftView(APIView):
             gift_req = request.user.gifts
         elif type == "sent":
             order_ids = (Order.objects.filter(maker= request.user.id)).values_list('id', flat=True)
+            if not order_ids:
+                return Response(
+                    {"response": "No orders found"}, 
+                    status=status.HTTP_404_NOT_FOUND  
+                )
             gift_req = Gift.objects.filter(order__in= order_ids)
         if not gift_req:
             return Response({"Gifts": []}) ## TODO
 
         serializer = GiftSerializerNested(gift_req, many=True)
         return Response(serializer.data)
+
     def post(self, request, format=None):
+        response = []
+        receiver = User.objects.get(email= request.data.get('email'))
+        if not receiver:
+            return Response(
+                {"response": "No receiver found"}, 
+                status=status.HTTP_404_NOT_FOUND  
+            )
+        # return Response(request.data.get('items'), status=status.HTTP_201_CREATED)
+        for item in request.data.get('items'):
+            order_data = {
+                'maker': request.user.id,
+                'product': item['product']['id'],
+                'location': receiver.profile.location,
+                'amount': item['quantity'],
+                'date_added': datetime.datetime.now()
+            }
+            order_serializer = OrderSerializerFlat(data=order_data)
+            if order_serializer.is_valid():
+                order = order_serializer.save()
+                product = Product.objects.get(pk=item['product']['id'])
+                if item['product']['no_of_pieces'] < item['quantity']:
+                    response.append({"response": "Product {}: The amount is larger than available number of pieces".format(item['product']['name'])})
+                    continue
+                new_no_of_pieces = product.no_of_pieces - int(item['quantity'])
+                product = Product.objects.filter(pk=item['product']['id']).update(no_of_pieces = new_no_of_pieces)
 
-        receiver = User.objects.get(email= request.data.get('receiver'))
-        order_data = {
-            'maker': request.user.id,
-            'product': request.data.get('product'),
-            'location': receiver.profile.location,
-            'amount': request.data.get('amount'),
-            'date_added': datetime.datetime.now()
-        }
-        order_serializer = OrderSerializerFlat(data=order_data)
-        if order_serializer.is_valid():
-            order = order_serializer.save()
-            product = Product.objects.get(pk=request.data.get('product'))
-            if product.no_of_pieces < int(request.data.get('amount')):
-                return Response(
-                    {"response": "The amount is larger than available number of pieces"}, 
-                    status=status.HTTP_400_BAD_REQUEST   
-                )
-            new_no_of_pieces = product.no_of_pieces - int(request.data.get('amount'))
-            product = Product.objects.filter(pk=request.data.get('product')).update(no_of_pieces = new_no_of_pieces)
+                data = {
+                    'order':  order.id,
+                    'receiver': receiver.id,
+                }
 
-        data = {
-            'order':  order.id,
-            'receiver': receiver.id,
-        }
-
-        serializer = GiftSerializerFlat(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                serializer = GiftSerializerFlat(data=data)
+                if serializer.is_valid():
+                    serializer.save()
+                    response.append(serializer.data)
+                else:
+                    response.append(serializer.error)
+            else:
+                response.append(order_serializer)
+        return Response(response, status=status.HTTP_201_CREATED)
 
 # DONE Create GiftDetail Class
 class GiftDetail(APIView):
@@ -472,6 +483,11 @@ class ShareView(APIView):
 
     def get(self, request,format=None):
         share = Share.objects.filter(share_holder = request.user.id)
+        if not share:
+            return Response(
+                {"response": "User didn't share any products"}, 
+                status=status.HTTP_404_NOT_FOUND   
+            )
         serializer = ShareSerializerNested(share, many=True)
         return Response(serializer.data)
 
@@ -528,6 +544,11 @@ class ProfileView(APIView):
 
     def get(self, request,format=None):
         profile = Profile.objects.get(pk=request.user.id)
+        if not profile:
+            return Response(
+                {"response": "Profile not found"}, 
+                status=status.HTTP_404_NOT_FOUND  
+            )
         serializer = ProfileSerializerNested(profile)
         return Response(serializer.data)
 
@@ -592,11 +613,6 @@ class ProfileDetail(APIView):
 
     def delete(self, request, profile_id):
         profile = self.get_object(profile_id)
-        if not profile:
-            return Response(
-                {"response": "Profile does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST   
-            )
         profile.delete()
         return Response(
             {"response": "Profile deleted successfully!"},

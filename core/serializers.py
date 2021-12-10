@@ -90,9 +90,14 @@ class ProfileSerializerFlat(serializers.ModelSerializer):
 
 class ShareSerializerNested(serializers.ModelSerializer):
     product = ProductSerializer('product')
+    share_holder_name = serializers.ReadOnlyField(source='share_holder.username')
     class Meta:
         model = Share
-        fields = '__all__'
+        fields = (
+            'product',
+            'share_holder',
+            'share_holder_name'
+        )
 
 class ShareSerializerFlat(serializers.ModelSerializer):
     class Meta:
