@@ -396,6 +396,11 @@ class OrderView(APIView):
                     status=status.HTTP_400_BAD_REQUEST   
                 )
             new_no_of_pieces = product.no_of_pieces - int(request.data.get('amount'))
+            if request.user.profile.cash < int(product.price):
+                return Response(
+                    {"response": "The price is higher than available cash"}, 
+                    status=status.HTTP_400_BAD_REQUEST   
+                )
             request.user.profile.cash = request.user.profile.cash - int(product.price)
             request.user.save()
             product = Product.objects.filter(pk=request.data.get('product')).update(no_of_pieces = new_no_of_pieces)
