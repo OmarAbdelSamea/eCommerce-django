@@ -418,6 +418,7 @@ class OrderView(APIView):
             product.no_of_pieces = product.no_of_pieces - new_no_of_pieces
             product.owner.profile.cash = product.owner.profile.cash + cash_amount
             product.owner.save()
+            product.save()
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
