@@ -416,7 +416,7 @@ class OrderView(APIView):
             request.user.profile.cash = request.user.profile.cash - cash_amount
             request.user.save()
             product.no_of_pieces = product.no_of_pieces + new_no_of_pieces
-            product.owner.cash = product.owner.cash + cash_amount
+            product.owner.profile.cash = product.owner.profile.cash + cash_amount
             product.owner.save()
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
