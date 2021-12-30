@@ -405,17 +405,17 @@ class OrderView(APIView):
                     {"response": "The amount is larger than available number of pieces"}, 
                     status=status.HTTP_400_BAD_REQUEST   
                 )
-            new_no_of_pieces = product.no_of_pieces - int(request.data.get('amount'))
+            new_no_of_pieces = int(request.data.get('amount'))
             if request.user.profile.cash < int(product.price):
                 return Response(
                     {"response": "The price is higher than available cash"}, 
                     status=status.HTTP_400_BAD_REQUEST   
                 )
             
-            cash_amount = request.user.profile.cash - int(product.price * product.no_of_pieces)
+            cash_amount = int(product.price * new_no_of_pieces)
             request.user.profile.cash = request.user.profile.cash - cash_amount
             request.user.save()
-            product.no_of_pieces = new_no_of_pieces
+            product.no_of_pieces = product.no_of_pieces - new_no_of_pieces
             product.owner.profile.cash = product.owner.profile.cash + cash_amount
             product.owner.save()
             serializer.save()
