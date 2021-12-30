@@ -284,7 +284,7 @@ class GiftView(APIView):
                     {"response": "No orders found"}, 
                     status=status.HTTP_404_NOT_FOUND  
                 )
-            gift_req = Gift.objects.filter(order__in= order_ids)
+            gift_req = Gift.objects.filter(order__id= order_ids)
         if not gift_req:
             return Response({"Gifts": []}) ## TODO
 
