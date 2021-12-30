@@ -2,6 +2,7 @@ from django.db.models import Q
 from django.shortcuts import render
 from django.http import Http404
 
+from django.conf import settings
 from rest_framework import status, authentication, permissions
 from rest_framework.fields import EmailField
 from rest_framework.views import APIView
@@ -12,6 +13,7 @@ from .models import Product, Category
 from .serializers import *
 from core import serializers
 import datetime
+import stripe
 
 class ProductsListGuest(APIView):
     def get(self, request, format=None):
@@ -322,6 +324,7 @@ class GiftView(APIView):
                 product.owner.profile.cash = product.owner.profile.cash + cash_amount
                 product.owner.save()
                 new_no_of_pieces = product.no_of_pieces - int(item['quantity'])
+                
                 product = Product.objects.filter(pk=item['product']['id']).update(no_of_pieces = new_no_of_pieces)
 
                 data = {
@@ -609,9 +612,15 @@ class ProfileView(APIView):
 @permission_classes([permissions.IsAuthenticated])
 def deposit(request):
     value = request.data.get('value', '')
-
+    stripe.api_key = settings.STRIPE_SECRET_KEY
     if value:
         profile = Profile.objects.get(user = request.user.id)
+        charge = stripe.Charge.create(
+                amount=request.data.get("value"),
+                currency='USD', 
+                description='Charge from eCommerce Store',
+                source=request.data.get("stripe_token")
+        )
         data = {
             'user': request.user.id,
             'cash': profile.cash + int(value),
