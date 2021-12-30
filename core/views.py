@@ -284,7 +284,7 @@ class GiftView(APIView):
                     {"response": "No orders found"}, 
                     status=status.HTTP_404_NOT_FOUND  
                 )
-            gift_req = Gift.objects.filter(order__id= order_ids)
+            gift_req = Gift.objects.filter(order__in= order_ids)
         if not gift_req:
             return Response({"Gifts": []}) ## TODO
 
@@ -315,6 +315,12 @@ class GiftView(APIView):
                 if item['product']['no_of_pieces'] < item['quantity']:
                     response.append({"response": "Product {}: The amount is larger than available number of pieces".format(item['product']['name'])})
                     continue
+
+                cash_amount = int(product.price * int(item['quantity']))
+                request.user.profile.cash = request.user.profile.cash - cash_amount
+                request.user.save()
+                product.owner.profile.cash = product.owner.profile.cash + cash_amount
+                product.owner.save()
                 new_no_of_pieces = product.no_of_pieces - int(item['quantity'])
                 product = Product.objects.filter(pk=item['product']['id']).update(no_of_pieces = new_no_of_pieces)
 
